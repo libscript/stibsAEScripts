@@ -1,3 +1,6 @@
+//You should be able to get the label colours from app.settings
+//I've tried app.settings.getSetting("Label Preference Color Section 5", "Label Color ID 2 # 1", PREFType.PREF_Type_MACHINE_INDEPENDENT)
+//but it doesn't work. So the colours are hard coded
 var colours = [[0.819607843137255, 0, 0],
  [1, 0.925490196078431, 0],
  [0.00392156862745098, 1, 0.901960784313726],
