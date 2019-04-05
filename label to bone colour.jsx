@@ -20,7 +20,7 @@ for (var i = 1; i <= 16; i++){
     colours[i-1] =  asciiToRGB(thePref);
  }
 
-
+app.beginUndoGroup('Label colours to DUIK Bones');
 var theComp = app.project.activeItem;
 if (theComp){
     var theLayers = theComp.selectedLayers;
@@ -30,4 +30,4 @@ if (theComp){
         }
     }
 }
-
+app.endUndoGroup();
