@@ -1,23 +1,30 @@
 // @target AfterEffects
 // this script automatically colourises the bones created by DUIK
 // to match the label colour of the layer they're on
-
 function asciiToRGB(str) {  
-    var arr = [];  
+    var base = 20;
+    var arr = [0, 0, 0];  
+    var hexArr = [0, 0, 0];
     for (var i = 1, l = str.length; i < l; i ++) {  
-    var hex = Number(str.charCodeAt(i)).toString(16);  
-    arr.push(parseInt(hex, 16)/65533);  
+        var hex = Number(str.charCodeAt(i)).toString(base);  
+        hexArr[i-1] = hex;
+        var theRGB = parseInt(hex, 16)/255;
+        arr[i-1] = theRGB;  
     }  
+    // alert(hexArr);
     return arr;  
 } 
 
-var colours = [];
-for (var i = 1; i <= 16; i++){
+function getLabelColour(theLayer){
+    var label = theLayer.label;
+
     var sect = "Label Preference Color Section 5";  
-    var key = "Label Color ID 2 # " + i.toString();  
+    var key = "Label Color ID 2 # " + label.toString();  
     var prefType = PREFType.PREF_Type_MACHINE_INDEPENDENT
     var thePref = app.preferences.getPrefAsString(sect,key, prefType);  
-    colours[i-1] =  asciiToRGB(thePref);
+    // alert(asciiToRGB(thePref));
+    return  asciiToRGB(thePref);
+
  }
 
 app.beginUndoGroup('Label colours to DUIK Bones');
@@ -26,7 +33,7 @@ if (theComp){
     var theLayers = theComp.selectedLayers;
     for (var i =0; i < theLayers.length; i++){
         if(theLayers[i]("Effects")("Bone")){
-            theLayers[i]("Effects")("Bone")("Color").setValue(colours[theLayers[i].label-1]);
+            theLayers[i]("Effects")("Bone")("Color").setValue(getLabelColour(theLayers[i]));
         }
     }
 }
