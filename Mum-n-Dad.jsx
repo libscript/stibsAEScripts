@@ -1,7 +1,7 @@
 // @target AfterEffects
 // creates a null that acts as the parent for all selected layers
 // or if nothing is selected, everything in the comp
-app.beginUndoGroup("Add handle to comp");
+app.beginUndoGroup("make parent for comp");
 var nullName = "Parent Null"; //change this to whatever
 
 var theComp = app.project.activeItem;
