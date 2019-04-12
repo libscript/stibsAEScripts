@@ -1,36 +1,54 @@
 // @target AfterEffects
-// creates a null that acts as the parent for all selected layers
-// or if nothing is selected, everything in the comp
+// if multiple layers are selected creates a null that acts as the parent for all selected layers
+// or if one layer is selected makes that the parent for the everything in the comp
+// or if nothing is selected, makes a new null the parent of everything in the comp
 app.beginUndoGroup("make parent for comp");
 var nullName = "Parent Null"; //change this to whatever
 
 var theComp = app.project.activeItem;
+var newParent = null;
 if (theComp){
-    var selected = theComp.selectedLayers;
-    if (! selected.length){
-        selected = [];
+    var selectedLyr = theComp.selectedLayers;
+    var numSelected = selectedLyr.length;
+
+    // 1 or fewer layers selected. All the unparented comp items will be affected    
+    if (numSelected <= 1){
+        selectedLyr = [];
         for (var i = 1; i <= theComp.numLayers; i++){
-            selected += theComp.layer(i);
+            selectedLyr.push( theComp.layer(i));
         }
+    } 
+    // 1 layer selected, it will become the new parent
+    if (numSelected === 1){
+        newParent = selectedLyr[0];
     }
 
-    var averagePosition = [];
-    var numChildren = 0;
-    for (var layer = 0; layer < selected.length; layer++){
-        var theLayer = selected[layer];
-        if (! theLayer.parent){
-            averagePosition += theLayer.position;
-            numChildren++;
+    // create a null for a parent if we need it
+    if (! newParent){
+        var averagePosition = [0, 0];
+        var numChildren = 0;
+        for (var layer = 0; layer < selectedLyr.length; layer++){
+            var theLayer = selectedLyr[layer];
+            if (! theLayer.parent){
+                averagePosition += theLayer.position.value;
+                numChildren++;
+            }
         }
+        averagePosition /= numChildren
+        newParent = theComp.layers.addNull();
+        newParent.name = nullName;
+        newParent.position.setValue(averagePosition);
     }
-    averagePosition /= numChildren
-    newParent = theComp.layers.addNull();
-    newParent.name = nullName;
-    newParent.position.setValue(averagePosition);
-    for (var layer = 0; layer < selected.length; layer++){
-        var theLayer = selected[layer];
+    // do the parenting
+    for (var layer = 0; layer < selectedLyr.length; layer++){
+        var theLayer = selectedLyr[layer];
         if (! theLayer.parent){
-            theLayer.parent = newParent;
+            if (newParent.index != theLayer.index){
+                var wasLocked = theLayer.locked;
+                theLayer.locked = false;
+                theLayer.parent = newParent;
+                theLayer.locked = wasLocked;
+            }
         }
     }
 }
