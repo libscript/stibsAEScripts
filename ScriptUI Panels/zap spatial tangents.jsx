@@ -1,5 +1,5 @@
 // @target aftereffects 
-// @script "set spatial tangents"
+// @script "zap spatial tangents"
 
 var thisScript = this;
 thisScript.scriptTitle = 'copyMultiLayer';
