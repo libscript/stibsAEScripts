@@ -1,3 +1,8 @@
+// snaps keyframes to frame boundaries. Useful to avoid problems when you have more than one keyframe per frame
+// if you select some keyframes it will quantise just them,
+//  or if you select a layer it will quantise all the keyframes in the layer
+// or if nothing is selected it will quantise all the keys in the comp.
+
 //  @includepath "./(lib)"
 //  @include "copyproperties-makekey.jsx"
 //  @include "jsextras.jsx"
