@@ -1,6 +1,6 @@
 var theComp = app.project.activeItem;
 var noLightSelected =true;
-if (theComp){
+if (theComp instanceof CompItem){
     app.beginUndoGroup("Add LightView camera")
     var theLights = theComp.selectedLayers;
     for (i=0; i < theLights.length; i++){

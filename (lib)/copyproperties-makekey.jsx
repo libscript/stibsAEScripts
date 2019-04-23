@@ -29,20 +29,29 @@
 
 function makeKeyWithAttributes(theProperty, keyAttributes, keyTime) {
 	//turns theAttributes from copyKeyAttributes into a new keyframe
-	theProperty.setValueAtTime(keyTime, keyAttributes.keyVal);
-	var newKeyIndex = theProperty.nearestKeyIndex(keyTime); //I wish Adobe would just make a keyframe class
+	if (theProperty.canVaryOverTime){
+		try {
+			theProperty.setValueAtTime(keyTime, keyAttributes.keyVal);
+			var newKeyIndex = theProperty.nearestKeyIndex(keyTime); //I wish Adobe would just make a keyframe class
 
-	if (keyAttributes.canInterp) {
-		theProperty.setTemporalEaseAtKey(newKeyIndex, keyAttributes.keyInTemporalEase, keyAttributes.keyOutTemporalEase);
-		//important to do this after setting the temporal ease, or it turns all keyframes into bezier interpolation
-		theProperty.setInterpolationTypeAtKey(newKeyIndex, keyAttributes.keyInInterpolationType, keyAttributes.keyOutInterpolationType);
-	}
+			if (keyAttributes.canInterp) {
+				theProperty.setTemporalEaseAtKey(newKeyIndex, keyAttributes.keyInTemporalEase, keyAttributes.keyOutTemporalEase);
+				//important to do this after setting the temporal ease, or it turns all keyframes into bezier interpolation
+				theProperty.setInterpolationTypeAtKey(newKeyIndex, keyAttributes.keyInInterpolationType, keyAttributes.keyOutInterpolationType);
+			}
 
-	//theProperty.setInterpolationTypeAtKey(theAttributes.keyInInterpolationType-6412, theAttributes.keyOutInterpolationType-6412); //WTF Javascript?
-	if (keyAttributes.isSpatial) {
-		theProperty.setSpatialTangentsAtKey(newKeyIndex, keyAttributes.keyInSpatialTangent, keyAttributes.keyOutSpatialTangent);
+			//theProperty.setInterpolationTypeAtKey(theAttributes.keyInInterpolationType-6412, theAttributes.keyOutInterpolationType-6412); //WTF Javascript?
+			if (keyAttributes.isSpatial) {
+				theProperty.setSpatialTangentsAtKey(newKeyIndex, keyAttributes.keyInSpatialTangent, keyAttributes.keyOutSpatialTangent);
+			}
+			return newKeyIndex;
+		} catch (e) {
+				writeLn(e);
+				return false;
+		}
+	} else {
+		return false;
 	}
-	return newKeyIndex;
 }
 
 //make key but don't set attributes

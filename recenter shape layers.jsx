@@ -2,7 +2,7 @@
 // centers the anchor point of a shape layer in the middle of the contents of the layer
 app.beginUndoGroup("Center shape layer anchor");
 var theComp = app.project.activeItem;
-if (theComp){
+if (theComp instanceof CompItem){
     var selected = theComp.selectedLayers;
     for (var layer = 0; layer < selected.length; layer++){
         var theLayer = selected[layer];

@@ -29,7 +29,7 @@ function getLabelColour(theLayer){
 
 app.beginUndoGroup('Label colours to DUIK Bones');
 var theComp = app.project.activeItem;
-if (theComp){
+if (theComp instanceof CompItem){
     var theLayers = theComp.selectedLayers;
     for (var i =0; i < theLayers.length; i++){
         if(theLayers[i]("Effects")("Bone")){

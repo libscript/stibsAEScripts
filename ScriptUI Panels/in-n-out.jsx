@@ -79,7 +79,7 @@ function defaultFor(arg, val, replaceNullandEmptyVals) {
 // ----------- timeconversions--------------------
 function percentToHMSF(percent, acomp) {
   var thecomp = defaultFor(acomp, app.project.activeItem);
-  if (thecomp) {
+  if (theComp instanceof CompItem) {
     return timeToCurrentFormat(percent * thecomp.duration / 100, 1 / thecomp.frameDuration);
   }
   return false;

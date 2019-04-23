@@ -16,7 +16,7 @@ buildGUI(this);
 function autoOrientSelectedLayers(lookAhead, lookBehind, headingOffset, additive) {
   var proj = app.project;
   app.beginUndoGroup(scriptName);
-  if (proj) {
+  if (proj instanceof Project) {
     if (app.project.activeItem) {
       var movingBodies = app.project.activeItem.selectedLayers;
       if (movingBodies.length > 0) {

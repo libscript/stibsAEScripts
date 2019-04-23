@@ -105,7 +105,7 @@ thisScript.buildGUI = function(thisObj) {
 
     copyBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             app.beginUndoGroup("copy keys");
             thisObj.theCopiedKeys = thisObj.copySelectedKeys(theComp);
             //thisObj.prefs.saveToPrefs(thisObj.theCopiedKeys);
@@ -117,7 +117,7 @@ thisScript.buildGUI = function(thisObj) {
 
     pasteBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             app.beginUndoGroup("paste keys");
             // if (thisObj.theCopiedKeys === null) {
             //     thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
@@ -133,7 +133,7 @@ thisScript.buildGUI = function(thisObj) {
 
     copyPasteBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             //callback для кнопки
             app.beginUndoGroup("copy and paste Keys"); //какое-то Undo
             thisObj.theCopiedKeys = thisObj.copySelectedKeys(theComp);
@@ -147,7 +147,7 @@ thisScript.buildGUI = function(thisObj) {
 
     pasteRevBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             app.beginUndoGroup("paste keys");
             // if (thisObj.theCopiedKeys === null) {
             //     thisObj.theCopiedKeys = thisObj.prefs.readFromPrefs();
@@ -163,7 +163,7 @@ thisScript.buildGUI = function(thisObj) {
 
     copyPasteRevBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             //callback для кнопки
             app.beginUndoGroup("copy and paste Keys"); //какое-то Undo
             thisObj.theCopiedKeys = thisObj.copySelectedKeys(theComp);
@@ -186,7 +186,7 @@ thisScript.buildGUI = function(thisObj) {
 
     copyTimeSliceBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             thisObj.timeSlice = thisScript.copyTimeSlice(theComp);
             pasteTimeSliceBttn.active = true;
         }
@@ -194,7 +194,7 @@ thisScript.buildGUI = function(thisObj) {
 
     pasteTimeSliceBttn.onClick = function() {
         var theComp = app.project.activeItem;
-        if (theComp) {
+        if (theComp instanceof CompItem) {
             thisScript.pasteTimeSlice(thisScript.timeSlice, theComp);
         }
     };

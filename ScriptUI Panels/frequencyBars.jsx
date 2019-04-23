@@ -48,7 +48,7 @@ function makeFrequencyBars(numBars, mono, lGradient, rGradient){
     app.beginUndoGroup("Make frequency bars");
     var theComp = app.project.activeItem;
 
-    if (theComp){
+    if (theComp instanceof CompItem){
         var barHeight = Math.round(theComp.height/4) ;
         var barWidth = Math.round(theComp.width / (1 + numBars));
         var theAudioLayers = theComp.selectedLayers;

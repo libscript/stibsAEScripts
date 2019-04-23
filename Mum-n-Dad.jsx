@@ -7,7 +7,7 @@ var nullName = "Parent Null"; //change this to whatever
 
 var theComp = app.project.activeItem;
 var newParent = null;
-if (theComp){
+if (theComp instanceof CompItem){
     var selectedLyr = theComp.selectedLayers;
     var numSelected = selectedLyr.length;
 

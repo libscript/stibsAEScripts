@@ -85,3 +85,32 @@ function getPropertiesWithExpressionsFromLayer(theLayer, selectedOnly) {
     }
     return props;
 }
+
+function getPropertiesWithKeyFramesFromLayer(theLayer, selectedOnly) {
+    var props = [];
+    //only return selected properties. Kinda trivial but here for ease of use
+    if (selectedOnly) {
+        for (var j = 0; j < theLayer.selectedProperties.length; j++) {
+            if (theLayer.selectedProperties[j].numKeys > 0) {
+                props.push(theLayer.selectedProperties[j]);
+            }
+        }
+    } else {
+        for (var p = 1; p <= theLayer.numProperties; p++) {
+            if (theLayer.property(p)) {
+                propertyGroup = theLayer.property(p);
+                var newProps = traversePropertyGroups(propertyGroup);
+                if (newProps.length) {
+                    for (var i = 0; i < newProps.length; i++) {
+                        if (newProps[i].numKeys > 0) {
+                            if (newProps[i].name != "Marker"){
+                                props.push(newProps[i]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return props;
+}
