@@ -1,5 +1,5 @@
 // @target AfterEffects
-app.beginUndoGroup("Locked Layers Shy");
+app.beginUndoGroup("Shy Locked Layers");
 var theComp = app.project.activeItem;
 if (theComp instanceof CompItem){
     for (i=1; i <= theComp.numLayers; i++){
