@@ -1,5 +1,5 @@
-//@target aftereffects &&  &&  &&  && 
-//this-n-that ©2016 Stephen Dixon &&  &&  && 
+//@target aftereffects
+//this-n-that ©2016 Stephen Dixon
 //
 //selects nth layers
 
@@ -78,23 +78,25 @@ function buildUI(thisObj) {
   };
 
 
-  function findNthLayer(i, nth, offset, randoz, sense) {
+  function findNthLayer(i, nth, offset, randoz, sense, numIndexes) {
+    // so much off-by-one!
     var result;
     //setting sense to false inverts the output
-    if (nth === 1 & i >= offset) { //select em all
-      return sense;
+    if (nth === 1) { //de/select em all
+      return ((i >= offset-1) && sense);
     }
     if (randoz) {
       //select 1/nth of the layers - since they are sorted randomly this selects a precise proportion, at random
-      result = (i < (numIndexes - offset) / nth & i >= offset) & sense;
+      result = ((i >= offset) && (i < (offset + 1 + (numIndexes - offset) / nth)));
       return (sense === result);
     }
     //selection based on index
-    result = (i - (offset - 1) ) % nth === 0;
+    result = ((i >= offset-1) && (i - (offset - 1) ) % nth === 0);
     return (sense === result);
   }
 
-  function makeIndexArr(originalLayers, randoz, logic) {
+  function makeIndexArr(originalLayers, randoz, logic, offset) {
+
     var i;
     var theIndexes = [];
     //put the indices into an array.
@@ -111,9 +113,12 @@ function buildUI(thisObj) {
     }
     //..so that we can sort them for the random function
     if (randoz) {
-      theIndexes.sort(function () {
+      var nonRandomIndexes = theIndexes.slice(0, offset-1);
+      var randomIndexes = theIndexes.slice(offset - theIndexes.length - 1)
+      randomIndexes.sort(function () {
         return (1 - Math.random() * 2);
       });
+      theIndexes = nonRandomIndexes.concat(randomIndexes);
     }
     return theIndexes;
   }
@@ -131,12 +136,13 @@ function buildUI(thisObj) {
     var randoz = randomChckBx.value;
     app.beginUndoGroup('this-n-that');
 
-    theIndexes = makeIndexArr(originalLayers, randoz, logic);
+    theIndexes = makeIndexArr(originalLayers, randoz, logic, offset);
     numIndexes = theIndexes.length;
 
     for (i = 0; i < numIndexes; i++) {
       // is the layer on the list?
-      isNth  = findNthLayer(i, nth, offset, randoz, sense);
+      isNth  = findNthLayer(i, nth, offset, randoz, sense, numIndexes);
+      // isNth = isNth & (originalLayers[theIndexes[i]].index >= offset);
       // apply the logic
       isSelxd =  originalLayers[theIndexes[i]].selected;
       if (logic === 'set' || logic === 'select in current') {
@@ -168,9 +174,7 @@ function buildUI(thisObj) {
     pal.center();
     pal.show();
   } else {
-    pal
-                        .layout
-                            .layout(true);
+    pal.layout.layout(true);
   }
 }
 
