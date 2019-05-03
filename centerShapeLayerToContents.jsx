@@ -8,8 +8,7 @@ for (var i= 0; i< selectedLayers.length; i++){
     for (var p=1, len=theContents.numProperties; p <= len ; p++) {
         var shapeContents = theContents.property(p).property("ADBE Vectors Group"); //individual shapes in the content
         var isPath = false;
-        // if (isValid(shapeContents.property("Contents"))){
-        //     var shapeContent = shapeContents.property("Contents");
+
             for (var q = 1; q <= shapeContents.numProperties; q++){
                 // shape contents have fill, stroke, etc. properties
                 if (isValid(shapeContents.property(q).property("ADBE Vector Shape"))){ //the shape path
