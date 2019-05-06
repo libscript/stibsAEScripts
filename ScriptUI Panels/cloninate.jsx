@@ -1,16 +1,10 @@
-// @target aftereffects
+﻿// @target aftereffects
 //the cloninator clones an item in a comp and creates a
 // new source for it in the project (c)2016 Stephen Dixon
+// @includepath "../(lib)"
+// @include "duplicate layer source.jsx"
 
-//
-// if (debugging) { run a test for debug     app.beginUndoGroup('cloninator');
-//     var originalLayers = app.project.activeItem.selectedLayers;     if
-// (originalLayers.length === 0) {         alert("select a layer to cloninate,
-// silly rabbit");     } else {
-//
-//         for (var i = 0; i < originalLayers.length; i++) {
-// cloninate(originalLayers[i], true, false, true, 0);         }     }
-// app.endUndoGroup(); } else { actually build the UI
+
 var scriptName = 'cloninate';
 
 function reinstateButton(theButton) { //reinstate a button with an oldValue property
@@ -72,7 +66,7 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
         if (recurseFootageToo) {
           for (i = 1; i <= newSource.layers.length; i++) {
             //cloninate, recursing, with footage, replacing
-            $.writeLn ("newSource.layers[i].name " + newSource.layers[i].name);
+            $.writeln ("newSource.layers["+i+"].name " + newSource.layers[i].name);
             cloninate(newSource.layers[i], recursionLimit, true, true, recursionDepth + 1);
           }
         } else {
@@ -86,8 +80,9 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
           }
         }
       } else {
-        //the source is a footage layer - but it could be a solid
-        if (!isValid(oldSource.file)) { //looks like we got a solid layer or a camera
+        //the layer is a footage layer - but it could be a solid
+       
+        if (!(oldSource.mainSource.file)) { //looks like we got a solid layer or a camera
           //This next bit is a bit hacky make a new solid
           newLayer = app.project.activeItem.layers.addSolid(oldSource.mainSource.color, oldSource.name, oldSource.width, oldSource.height, oldSource.pixelAspect);
 
@@ -100,12 +95,13 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
           // source
           app.project.activeItem.layer(newLayer.index).remove();
         } else {
-          //footage item, not a solid re-import the source
-          newSource = app.project.importFile(new ImportOptions(oldSource.file));
-        }
+          //the source is a footage item, but not a solid so duplicate the source
+          newSource = duplicateLayerSource(originalLayer);
+       }
 
-        // now rename the source with a unique name find a serialnumber suffix if one
-        // exists, e.g. mypic.jpg_1 everyone stand back… matches any string that doesn't
+        // now rename the source with a unique name find a serialnumber suffix if one exists e.g. mypic.jpg_1 
+        // everyone stand back… 
+        // the RE matches any string that doesn't
         // end in a number, followed by a number. eg foo99bar_9 will match
         // (foo99bar_)(9)
         re = /(.*[^\d])*(\d*)$/;
@@ -281,8 +277,9 @@ function buildUI(thisObj) {
 
       app.beginUndoGroup('cloninator');
       originalIsComp = (originalLayers.length === 0) ;
-      cloninate(app.project.activeItem, 0, footageTooChkbx.value, false, recursionLimit, originalIsComp = true);
+
       for (i = 0; i < originalLayers.length; i++) {
+        cloninate(originalLayers[i], 0, footageTooChkbx.value, false, recursionLimit, originalIsComp );
         originalLayers[i].selected = true
       }
       app.endUndoGroup();
