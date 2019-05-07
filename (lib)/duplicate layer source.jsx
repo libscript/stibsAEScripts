@@ -15,12 +15,12 @@ function duplicateLayerSource(theLayer){
         }
     }
     //now deselect all the project items
-    var sel = app.project.selection;
-    var oldSel = []
-    for (var i = 0; i < sel.length; i++){
-        oldSel.push(sel[i].dynamicLinkGUID)
-        sel[i].selected = false;
-        }
+//    var sel = app.project.selection;
+//    var oldSel = []
+//    for (var i = 0; i < sel.length; i++){
+//        oldSel.push(sel[i].dynamicLinkGUID)
+//        sel[i].selected = false;
+//        }
        
     // select the layer we want to dupe the source for
     theLayer.selected = true;
@@ -28,15 +28,15 @@ function duplicateLayerSource(theLayer){
     app.executeCommand(app.findMenuCommandId("Reveal Layer Source in Project"));
     app.executeCommand(app.findMenuCommandId("Duplicate"));
     // when we duplicate an item it will be selected
-    newItem = app.project.selection[0];
+    var newItem = app.project.selection[0];
     
     // now put all the selection back to how we found it
     // first in the project
-    for (var i = 1; i <= app.project.items.length; i++){
-        if (oldSel.indexOf(app.project.items[i].dynamicLinkGUID )>= 0){
-            app.project.items[i].selected = true;
-            }
-        }
+ //   for (var i = 1; i <= app.project.items.length; i++){
+    //    if (oldSel.indexOf(app.project.items[i].dynamicLinkGUID )>= 0){
+       //     app.project.items[i].selected = true;
+          //  }
+        //}
     // now in the comp
     for (var i = 1; i < oldLayerSelection.length; i++){
         theComp.layer(oldLayerSelection[i]).selected = true;

@@ -5,7 +5,7 @@
 // @include "duplicate layer source.jsx"
 
 
-var scriptName = 'cloninate';
+var scriptName = 'cloninateLayer';
 
 function reinstateButton(theButton) { //reinstate a button with an oldValue property
   if (!theButton.enabled) { //turn on the footage button and reinstate its value if needs be
@@ -25,8 +25,7 @@ function findDuplicateSourceItems(theName) {
 
   return false;
 }
-
-function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOriginal, recursionDepth, originalIsComp) {
+function cloninateComp(originalComp, recursionLimit, recurseFootageToo, recursionDepth) {
   var newSource;
   var oldSource;
   var otherLayers;
@@ -43,44 +42,120 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
   // recursionLimit < 0 means infinite. We start at recursion level = 0 so if the
   // user has limited it to 0 recursions only dupe the outer layer
   if (recursionLimit < 0 || recursionDepth <= recursionLimit) {
-    if (originalIsComp && recursionDepth === 0) {
-      oldSource = originalLayer;
-      replaceOriginal = false; //can't replacinate a Composition in the project window
-    } else {
+          
+
+      //easy peasy, the source is a comp
+        newSource = oldSource.duplicate();
+        if (recurseFootageToo) {
+          for (i = 1; i <= newSource.layers.length; i++) {
+            //cloninateLayer, recursing, with footage, replacing
+            $.writeln ("newSource.layers["+i+"].name " + newSource.layers[i].name);
+            cloninateLayer(newSource.layers[i], recursionLimit, recurseFootageToo, true, recursionDepth + 1);
+          }
+        } else {
+          for (nsLyr = 1; nsLyr <= newSource.layers.length; nsLyr++) {
+            // cloninate all the comp layers in the new comp,
+            if (newSource.layers[nsLyr].source !== null) {
+              //  ignore footage layers
+              if (newSource.layers[nsLyr].source.typeName === 'Composition') {
+                //cloninateLayer, recursively, not the footage, replace the source layers
+                cloninateLayer(newSource.layers[nsLyr], recursionLimit, recurseFootageToo, true, recursionDepth + 1);
+              }
+            }
+          }
+        }
+      } 
+
+        // now rename the source with a unique name find a serialnumber suffix if one exists e.g. mypic.jpg_1 
+        // everyone stand back… 
+        // the RE matches any string that doesn't
+        // end in a number, followed by a number. eg foo99bar_9 will match
+        // (foo99bar_)(9)
+        re = /(.*[^\d])*(\d*)$/;
+
+        m = oldSource.name.match(re);
+        oldSourceSerial = m[2];
+        oldSourceBaseName = m[1];
+
+        //default serial number
+        newSourceSerial = 1;
+
+        // if no match, then the source doesn't have a serial number. One of these
+        // should catch it
+        if (typeof(oldSourceSerial) === 'undefined' || oldSourceSerial === '' || isNaN(parseInt(oldSourceSerial, 10))) {
+          // since there was no serial we add a separator onto the base name so that it
+          // becomes basename_1 etc
+          oldSourceBaseName = oldSource.name + '_';
+        } else {
+          //there was a serial number, so increment it
+          newSourceSerial = 1 + parseInt(oldSourceSerial, 10);
+        }
+
+        if (!oldSourceBaseName) {
+          oldSourceBaseName = oldSource.name;
+        } //shouldn't happen, but you know, regex..
+        // we need to check to see if a source layer with the new serial number exists,
+        // and if it does we keep incrementing the serial until it doesn't
+        while (findDuplicateSourceItems('' + oldSourceBaseName + newSourceSerial)) {
+          newSourceSerial++;
+        }
+
+        //set the name of the new source layer
+        newSource.name = '' + oldSourceBaseName + newSourceSerial;
+      }
+
+function cloninateLayer(originalLayer, recursionLimit, recurseFootageToo, replaceOriginal, recursionDepth) {
+  var newSource;
+  var oldSource;
+  var otherLayers;
+  var i;
+  var nsLyr;
+  var re;
+  var m;
+  var oldSourceSerial;
+  var oldSourceBaseName;
+  var newSourceSerial;
+  var wasLocked;
+  var otherLayer;
+
+  // recursionLimit < 0 means infinite. We start at recursion level = 0 so if the
+  // user has limited it to 0 recursions only dupe the outer layer
+  if (recursionLimit < 0 || recursionDepth <= recursionLimit) {
       oldSource = originalLayer.source;
       otherLayers = originalLayer.containingComp.layers;
-    }
+    
     if (!isValid(oldSource)) {
-      // shape layers have no source - no point duplicating them in nested comps but
+      // shape and text layers have no source - no point duplicating them in nested comps but
       // we will duplicate them in this comp if the user wants to say, duplicate all
       // the layers selected
       if (recursionDepth === 0 && !replaceOriginal) {
         newLayer = originalLayer.duplicate();
-        // return newLayer;
       }
-      // return null
     } else {
-      //easy peasy, the source is a comp
       if (oldSource.typeName === 'Composition') {
+      //easy peasy, the source is a comp
         newSource = oldSource.duplicate();
         if (recurseFootageToo) {
           for (i = 1; i <= newSource.layers.length; i++) {
-            //cloninate, recursing, with footage, replacing
+            //cloninateLayer, recursing, with footage, replacing
             $.writeln ("newSource.layers["+i+"].name " + newSource.layers[i].name);
-            cloninate(newSource.layers[i], recursionLimit, true, true, recursionDepth + 1);
+            cloninateLayer(newSource.layers[i], recursionLimit, recurseFootageToo, true, recursionDepth + 1);
           }
         } else {
           for (nsLyr = 1; nsLyr <= newSource.layers.length; nsLyr++) {
+            // ignore all source-less layers,
             if (newSource.layers[nsLyr].source !== null) {
+              //  ignore footage layers
               if (newSource.layers[nsLyr].source.typeName === 'Composition') {
-                //cloninate, recursively, not the footage, replace the source layers
-                cloninate(newSource.layers[nsLyr], recursionLimit, false, true, recursionDepth + 1);
+                //cloninateLayer, recursively, not the footage, replace the source layers
+                cloninateLayer(newSource.layers[nsLyr], recursionLimit, recurseFootageToo, true, recursionDepth + 1);
               }
             }
           }
         }
       } else {
-        //the layer is a footage layer - but it could be a solid
+        // not a composition
+        // the layer is a footage layer - but it could be a solid
        
         if (!(oldSource.mainSource.file)) { //looks like we got a solid layer or a camera
           //This next bit is a bit hacky make a new solid
@@ -136,13 +211,10 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
         //set the name of the new source layer
         newSource.name = '' + oldSourceBaseName + newSourceSerial;
       }
-
       //now back to the comp. Duplicate the layer
-      if (!(originalIsComp && recursionDepth === 0)) {
-        newLayer = originalLayer.duplicate();
-      }
+      newLayer = originalLayer.duplicate();
+      
       wasLocked = false;
-
       //replacing the original layer means duplicating and deleting
       if (replaceOriginal) {
         if (originalLayer.locked) {
@@ -160,9 +232,9 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
       }
 
       //and set the source of that layer to the newly created project source item
-      if (!(originalIsComp && recursionDepth === 0)) {
-        newLayer.replaceSource(newSource, fixExpressions = true);
-      }
+      
+      newLayer.replaceSource(newSource, fixExpressions = true);
+      
       if (wasLocked) { //close the gate behind us
         newLayer.locked = true;
       }
@@ -171,7 +243,7 @@ function cloninate(originalLayer, recursionLimit, recurseFootageToo, replaceOrig
 }
 
 function buildUI(thisObj) {
-  var cloninateBttn;
+  var cloninateLayerBttn;
   var replacinateBttn;
   var recurseGrp;
   var levelGroup;
@@ -187,9 +259,9 @@ function buildUI(thisObj) {
 
   if (pal !== null) {
     btnGrp = pal.add('group', undefined, {orientation: 'row'});
-    cloninateBttn = btnGrp.add('button', [
+    cloninateLayerBttn = btnGrp.add('button', [
       undefined, undefined, 90, 22
-    ], 'cloninate');
+    ], 'cloninateLayer');
     replacinateBttn = btnGrp.add('button', [
       undefined, undefined, 90, 22
     ], 'replacinate');
@@ -265,43 +337,48 @@ function buildUI(thisObj) {
       }
     };
 
-    cloninateBttn.onClick = function() {
+    cloninateLayerBttn.onClick = function() {
       // do the hoo-hah
       var originalLayers = app.project.activeItem.selectedLayers;
       var i;
       // var layerHistory = [];
+      // recursionLimit of -1 == infinite recursion
       var recursionLimit = (infiniteRecurseBttn.value)
         ? -1
         : parseInt(recursionLimitTextBx.text, 10);
      
 
       app.beginUndoGroup('cloninator');
-      originalIsComp = (originalLayers.length === 0) ;
-
-      for (i = 0; i < originalLayers.length; i++) {
-        cloninate(originalLayers[i], 0, footageTooChkbx.value, false, recursionLimit, originalIsComp );
-        originalLayers[i].selected = true
+      originalIsCompInProjectWindow = (originalLayers.length === 0) ;
+      if (originalIsCompInProjectWindow){
+        cloninateComp(app.project.activeItem, recursionLimit, footageTooChkbx.value, 0 );
+      } else {
+        for (i = 0; i < originalLayers.length; i++) {
+          cloninateLayer(originalLayers[i], recursionLimit, footageTooChkbx.value, false, 0 );
+          originalLayers[i].selected = true
+        }
       }
       app.endUndoGroup();
     };
 
     replacinateBttn.onClick = function() {
       // do the hoo-hah
+      var originalLayers = app.project.activeItem.selectedLayers;
       var i;
-      app.beginUndoGroup('cloninator');
-      originalLayers = app.project.activeItem.selectedLayers;
+      // var layerHistory = [];
+      // recursionLimit of -1 == infinite recursion
       var recursionLimit = (infiniteRecurseBttn.value)
         ? -1
         : parseInt(recursionLimitTextBx.text, 10);
-      if (originalLayers.length === 0) {
-        alert('select a layer to replacinate, silly rabbit');
-      } else {
+     
+
+      app.beginUndoGroup('cloninator');
+      originalIsCompInProjectWindow = (originalLayers.length === 0) ;
+      if (! originalIsCompInProjectWindow){
         for (i = 0; i < originalLayers.length; i++) {
-          cloninate(originalLayers[i], recursionLimit, footageTooChkbx.value, true, 0, false);
+          cloninateLayer(originalLayers[i], recursionLimit, footageTooChkbx.value, false, 0 );
+          originalLayers[i].selected = true
         }
-      }
-      for (i = 0; i < originalLayers.length; i++) {
-        originalLayers[i].selected = true
       }
       app.endUndoGroup();
     };
@@ -316,4 +393,4 @@ function buildUI(thisObj) {
 }
 
 buildUI(this);
-// cloninate(app.project.activeItem, 1, true, true, false, 0, originalIsComp = true);
+//cloninateLayer(app.project.activeItem.selectedLayers[0], -1, true, false, 0);
