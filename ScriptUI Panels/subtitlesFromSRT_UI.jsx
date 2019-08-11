@@ -131,6 +131,8 @@ function chooseSrtFile(){
     return File.openDialog (prompt= "Choose an srt file", filter = "*.srt", multiSelect = false);
 }
 
+
+
 buildGUI(this);
 
 function buildGUI(thisObj) {
@@ -163,17 +165,17 @@ function buildGUI(thisObj) {
         "Other.."
         ];
     var compSize_DD = comp_Panel.add('dropDownList', [undefined, undefined, 170, undefined], compList, {selection: 1});
-    var customComp_Panel = comp_Panel.add('panel', undefined, "custom comp size", {orientation: "column", width: 170});
-    // var customCompDims_ST = customComp_Panel.add('staticText', undefined, {alignment: "left"});
-    var customCompDimensions_Grp = customComp_Panel.add('group', undefined, {orientation: "row"});
-    var customCompX_ET = customCompDimensions_Grp.add('editText', [undefined, undefined, 62, 20], "1920");
-    var customCompY_ET = customCompDimensions_Grp.add('editText', [undefined, undefined, 62, 20], "1080");
-    var customCompPA_Grp = customComp_Panel.add('group{orientation: "row"}');
-    var customCompPA_ST = customCompPA_Grp.add('staticText', undefined, "pixel aspect ratio");
-    var customCompPAR_ET = customCompPA_Grp.add('editText', [undefined, undefined, 36, 20], "1:1");
-    var customCompFR_Grp = comp_Panel.add('group{orientation: "row"}');
-    var customCompFR_ST = customCompFR_Grp.add('staticText', undefined, "frames per second");
-    var customCompFR_ET = customCompFR_Grp.add('editText', [undefined, undefined, 36, 20], "25");
+    // var customComp_Panel = comp_Panel.add('panel', undefined, "custom comp size", {orientation: "column", width: 170});
+    // // var customCompDims_ST = customComp_Panel.add('staticText', undefined, {alignment: "left"});
+    // var customCompDimensions_Grp = customComp_Panel.add('group', undefined, {orientation: "row"});
+    // var customCompX_ET = customCompDimensions_Grp.add('editText', [undefined, undefined, 62, 20], "1920");
+    // var customCompY_ET = customCompDimensions_Grp.add('editText', [undefined, undefined, 62, 20], "1080");
+    // var customCompPA_Grp = customComp_Panel.add('group{orientation: "row"}');
+    // var customCompPA_ST = customCompPA_Grp.add('staticText', undefined, "pixel aspect ratio");
+    // var customCompPAR_ET = customCompPA_Grp.add('editText', [undefined, undefined, 36, 20], "1:1");
+    var frameRate_Grp = comp_Panel.add('group{orientation: "row"}');
+    var frameRate_ST = frameRate_Grp.add('staticText', undefined, "frames per second");
+    var frameRate_ET = frameRate_Grp.add('editText', [undefined, undefined, 36, 20], "25");
     
     var dropshadow_Panel = btn_Grp.add('panel', undefined, "drop Shadow", {orientation: "column"});
     var doDropShadow_Chkbx = dropshadow_Panel.add('Checkbox', [undefined, undefined, 170, 16], 'Add soft drop shadow');
@@ -196,32 +198,32 @@ function buildGUI(thisObj) {
     }
 
     compSize_DD.selection = 0; 
-    customComp_Panel.enabled = false;
-    compSize_DD.onChange = function(){
-        if (compSize_DD.selection == 6){
-            customComp_Panel.enabled = true;
-        } else {
-            customComp_Panel.enabled = false;
-        }
-    }
+    // customComp_Panel.enabled = false;
+    // compSize_DD.onChange = function(){
+    //     if (compSize_DD.selection == 6){
+    //         customComp_Panel.enabled = true;
+    //     } else {
+    //         customComp_Panel.enabled = false;
+    //     }
+    // }
     var compsizes = [
         {width: 1920, height: 1080, par: 1},
         {width: 1080, height: 1920, par: 1},
         {width: 1080, height: 1350, par: 1},
         {width: 864, height: 1080, par: 1},
         {width: 1080, height: 1080, par: 1},
-        {width: parseInt(customCompX_ET.value), height: parseInt(customCompY_ET.value), par: getPARfromStr(customCompPAR_ET)}
+        {width: null, height: null, par: null}
         ]
 
 
     doTheThings_Btn.onClick = function(){
         compSettings = {
-            name: , 
-            width: , 
-            height: , 
-            pixelAspect: , 
-            frameRate: , 
-            sideMargins: , 
+            name: thisObj.subtitleInfo.name, 
+            width: compsizes[compSize_DD.selection].width, 
+            height: compsizes[compSize_DD.selection].height, 
+            pixelAspect: compsizes[compSize_DD.selection].par, 
+            frameRate: parseInt(frameRate_ET.value), 
+            // sideMargins: , 
             font: , 
             fontSize: , 
             hPos: , 
@@ -235,7 +237,7 @@ function buildGUI(thisObj) {
     // customCompX_ET
     // customCompY_ET
     // customCompPAR_ET
-    // customCompFR_ET
+    // frameRate_ET
     method_DD.selection = 0;
     useMGTemplate_Chkbx.oldVal = useMGTemplate_Chkbx.value;
     method_DD.onChange = function(){
