@@ -73,12 +73,13 @@ function makeSubtitlesComp(compSettings, subtitleInfo){
     var duration = (lastSub)? lastSub: 10;
     var frameRate = (compSettings.frameRate)? compSettings.frameRate: 25;
     // var sideMargin = (compSettings.sideMargins)? compSettings.sideMargins: 20; // percentage
-    var font = (compSettings.font)? compSettings.font: "Source Sans Pro";
+    //     var font = (compSettings.font)? compSettings.font: "Source Sans Pro";
     var fontSize = (compSettings.fontSize)? compSettings.fontSize: 50 * width/1920;
     var hPos = (compSettings.hPos)? compSettings.hPos: width/2;
     var vPos = (compSettings.vPos)? compSettings.vPos: height - fontSize * 2.75;
     var dropShadow = (compSettings.dropShadow)? compSettings.dropShadow: false;
     var method = (compSettings.method)? compSettings.method: 0;
+    alert(!(compSettings.width && compSettings.height));
     // create a new comp
     if( !(compSettings.width && compSettings.height)){
         // using custom comp settings
