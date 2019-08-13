@@ -93,6 +93,7 @@ function makeSubtitlesComp(compSettings, subtitleInfo){
             // subtitlesText.font = font;
             var subtitlesText = subtitlesLayer.property("Source Text").value;
             subtitlesText.fontSize = fontSize;
+            subtitlesText.justification = ParagraphJustification.CENTER_JUSTIFY;
             subtitlesLayer.position.setValue([hPos, vPos]);
             subtitlesLayer.inPoint = subtitles[i].inPoint;
             subtitlesLayer.outPoint = subtitles[i].outPoint;
@@ -108,6 +109,7 @@ function makeSubtitlesComp(compSettings, subtitleInfo){
         subtitlesText = subtitlesTextProp.value;
         // subtitlesText.font = font;
         subtitlesText.fontSize = fontSize;
+        subtitlesText.justification = ParagraphJustification.CENTER_JUSTIFY;
         subtitlesTextProp.setValue(subtitlesText);
         subtitlesLayer.position.setValue([hPos, vPos]);
         // subtitlesLayer.position.expression = 'transform.position - [0, sourceRectAtTime().height]'; // anchors the text at the bottom
@@ -250,9 +252,11 @@ function buildGUI(thisObj) {
 
     compSize_DD.selection = 0; 
     // TODO add scaling for fontsizes based on comp template
-    // compSize.onChange = function(){
+    compSize_DD.onChange = function(){
         // multiply fontsize by relative comp width
-    // }
+        var newCompWidth = compsizes[compSize_DD.selection.index].width;
+        if (newCompWidth){fontSize_ET.text = fontSize_Slider.value = compsizes[compSize_DD.selection.index].fontSize}
+    }
 
 
     doTheThings_Btn.onClick = function(){
@@ -326,7 +330,7 @@ function buildGUI(thisObj) {
     function updateDropShad(shadowOn){
         // check to see if we've built a comp
         
-        if (thisObj.theComp){
+        if (thisObj.theComp && app.project.activeItem == thisObj.theComp){
             var theCompLayers = false;
             theCompLayers = thisObj.theComp.layers;
             if (theCompLayers){
@@ -385,7 +389,7 @@ function buildGUI(thisObj) {
         updateText();
     }
     function updateText(){
-        if (thisObj.theComp){;
+        if (thisObj.theComp && app.project.activeItem == thisObj.theComp){;
             var theCompLayers = false;
             theCompLayers = thisObj.theComp.layers;
             if (theCompLayers){
