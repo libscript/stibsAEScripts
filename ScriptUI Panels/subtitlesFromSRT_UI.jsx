@@ -424,3 +424,10 @@ function buildGUI(thisObj) {
     }
   }
 };
+
+
+function findFonts(){
+
+    // '$(osascript << SCPT\nuse framework "AppKit"\nset fontFamilyNames to (current application\'s NSFontManager\'s sharedFontManager\'s availableFontFamilies) as list\nreturn fontFamilyNames\nSCPT)'
+    
+}
