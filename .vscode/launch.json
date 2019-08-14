@@ -1,0 +1,15 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "extendscript-debug",
+            "request": "launch",
+            "name": "subs",
+            "program": "C:/Users/sdixon/AppData/Roaming/Adobe/After Effects/16.1/Scripts/ScriptUI Panels/subtitlesFromSRT_UI.jsx",
+            "stopOnEntry": true
+        }
+    ]
+}
