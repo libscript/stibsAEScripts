@@ -360,40 +360,40 @@ function buildGUI(thisObj) {
             dropShadowSoftness_Slider.enabled = false;
             dropShadowDistance_Slider.enabled = false;
         }
-        updateDropShad(doDropShadow_Chkbx.value);
+        // updateDropShad(doDropShadow_Chkbx.value);
     }
 
     dropShadowOpacity_Slider.onChange = 
     dropShadowSoftness_Slider.onChange = 
     dropShadowDistance_Slider.onChange = 
         function(){
-            updateDropShad(doDropShadow_Chkbx.value);
+            // updateDropShad(doDropShadow_Chkbx.value);
         };
     
-    function updateDropShad(shadowOn){
-        // check to see if we've built a comp        
-        if (pal.theComp && app.project.activeItem == pal.theComp){
-            var theCompLayers = false;
-            theCompLayers = pal.theComp.layers;
-            if (theCompLayers){
-                for (var i = 1; i <= theCompLayers.length; i++){
-                    if (shadowOn){
-                        var dropShadowEffect = (theCompLayers[i].effect("Drop Shadow"))?
-                            theCompLayers[i].effect("Drop Shadow")
-                            :theCompLayers[i].property("ADBE Effect Parade").addProperty("ADBE Drop Shadow");
+    // function updateDropShad(shadowOn){
+    //     // check to see if we've built a comp        
+    //     if (pal.theComp && app.project.activeItem == pal.theComp){
+    //         var theCompLayers = false;
+    //         theCompLayers = pal.theComp.layers;
+    //         if (theCompLayers){
+    //             for (var i = 1; i <= theCompLayers.length; i++){
+    //                 if (shadowOn){
+    //                     var dropShadowEffect = (theCompLayers[i].effect("Drop Shadow"))?
+    //                         theCompLayers[i].effect("Drop Shadow")
+    //                         :theCompLayers[i].property("ADBE Effect Parade").addProperty("ADBE Drop Shadow");
                         
-                        dropShadowEffect.enabled = true;
-                        dropShadowEffect.property("Opacity").setValue(dropShadowOpacity_Slider.value * 2.55); //opacity seems to be 0-255, although the display is in percent
-                        dropShadowEffect.property("Softness").setValue(dropShadowSoftness_Slider.value);
-                        dropShadowEffect.property("Distance").setValue(dropShadowDistance_Slider.value);
-                    } else {
-                        var dropShadow = theCompLayers[i].effect("Drop Shadow");
-                        if (dropShadow){dropShadow.enabled = false;}
-                    }
-                }
-            }
-        }
-    }
+    //                     dropShadowEffect.enabled = true;
+    //                     dropShadowEffect.property("Opacity").setValue(dropShadowOpacity_Slider.value * 2.55); //opacity seems to be 0-255, although the display is in percent
+    //                     dropShadowEffect.property("Softness").setValue(dropShadowSoftness_Slider.value);
+    //                     dropShadowEffect.property("Distance").setValue(dropShadowDistance_Slider.value);
+    //                 } else {
+    //                     var dropShadow = theCompLayers[i].effect("Drop Shadow");
+    //                     if (dropShadow){dropShadow.enabled = false;}
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
     fontSize_ET.oldVal = fontSize_ET.text;
     xPos_ET.oldVal = xPos_ET.text;
     yPos_ET.oldVal = yPos_ET.text;
@@ -419,7 +419,7 @@ function buildGUI(thisObj) {
             alert("Need a number");
             yPos_ET.text = yPos_ET.oldVal;
         }
-        updateText();
+        // updateText();
     }
     fontSize_Slider.onChange = yPos_Slider.onChange = xPos_Slider.onChange = function(){
         fontSize_Slider.value = Math.round(fontSize_Slider.value);
@@ -428,35 +428,35 @@ function buildGUI(thisObj) {
         xPos_ET.text = "" + xPos_Slider.value;
         yPos_Slider.value = Math.round(yPos_Slider.value);
         yPos_ET.text = "" + yPos_Slider.value;
-        updateText();
+        // updateText();
     }
-    function updateText(){
-        if (pal.theComp && app.project.activeItem == pal.theComp){;
-            var theCompLayers = false;
-            theCompLayers = pal.theComp.layers;
-            if (theCompLayers){
-                for (var i = 1; i <= theCompLayers.length; i++){
+    // function updateText(){
+    //     if (pal.theComp && app.project.activeItem == pal.theComp){;
+    //         var theCompLayers = false;
+    //         theCompLayers = pal.theComp.layers;
+    //         if (theCompLayers){
+    //             for (var i = 1; i <= theCompLayers.length; i++){
                     
-                    var subtitlesTextProp = theCompLayers[i].text.sourceText;
-                    if (subtitlesTextProp.numKeys > 0){
-                        for (var k =1; k <= subtitlesTextProp.numKeys; k++){
-                            //create a text document with the current value
-                            var textVal = subtitlesTextProp.valueAtTime(subtitlesTextProp.keyTime(k), true);
-                            textVal.fontSize = fontSize_Slider.value;
-                            subtitlesTextProp.setValueAtTime(subtitlesTextProp.keyTime(k),textVal);
-                        }
-                    } else {
-                        var textVal = subtitlesTextProp.value;
-                        textVal.fontSize = fontSize_Slider.value;
-                        subtitlesTextProp.setValue(textVal);
-                    }
-                    hPos = xPos_Slider.value / 100 * pal.theComp.width;
-                    vPos = yPos_Slider.value / 100 * pal.theComp.height;
-                    theCompLayers[i].transform.position.setValue([hPos, vPos]);
-                }
-            }
-        }
-    };
+    //                 var subtitlesTextProp = theCompLayers[i].text.sourceText;
+    //                 if (subtitlesTextProp.numKeys > 0){
+    //                     for (var k =1; k <= subtitlesTextProp.numKeys; k++){
+    //                         //create a text document with the current value
+    //                         var textVal = subtitlesTextProp.valueAtTime(subtitlesTextProp.keyTime(k), true);
+    //                         textVal.fontSize = fontSize_Slider.value;
+    //                         subtitlesTextProp.setValueAtTime(subtitlesTextProp.keyTime(k),textVal);
+    //                     }
+    //                 } else {
+    //                     var textVal = subtitlesTextProp.value;
+    //                     textVal.fontSize = fontSize_Slider.value;
+    //                     subtitlesTextProp.setValue(textVal);
+    //                 }
+    //                 hPos = xPos_Slider.value / 100 * pal.theComp.width;
+    //                 vPos = yPos_Slider.value / 100 * pal.theComp.height;
+    //                 theCompLayers[i].transform.position.setValue([hPos, vPos]);
+    //             }
+    //         }
+    //     }
+    // };
 
     if (pal instanceof Window) {
         pal.center();
