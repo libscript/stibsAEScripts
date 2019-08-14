@@ -19,6 +19,7 @@ function parseSRTFile(srtFile){
         if (srtLine.match(/^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}\s-->\s[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}$/)){
             // start a new subtitle once we find the timecode
             var newSub = {};
+            var textPayload = false;
             hmsi = srtLine.match(/^([0-9]{2}):([0-9]{2}):([0-9]{2}),([0-9]{3})\s-->/);
             var inPt = parseInt(hmsi[1]*3600) + parseInt(hmsi[2]*60) + parseInt(hmsi[3]) + parseInt(hmsi[4])/1000;
             newSub.inPoint = inPt;
@@ -35,7 +36,7 @@ function parseSRTFile(srtFile){
                         // there can be more than one line of text
                         // this loop will finish when it hits a blank line
                         nextLine = srtFile.readln();
-                        while (nextLine){
+                        while (nextLine && (! srtFile.eof)){
                             textPayload += "\n" + nextLine;
                             if (! srtFile.eof){
                                 nextLine = srtFile.readln()
@@ -43,12 +44,13 @@ function parseSRTFile(srtFile){
                                 nextLine = false
                             };
                         }
-                    }
-                    
+                    }                    
                 }
                 newSub.textPayload = textPayload;
             }
-            subtitleInfo.subtitles.push(newSub);
+            if (textPayload){
+                subtitleInfo.subtitles.push(newSub);
+            }
         } 
     }
     srtFile.close();
@@ -88,6 +90,12 @@ function makeSubtitlesComp(compSettings, subtitleInfo){
     
     if (method === 2){
         // create layers
+        if (compSettings.makeMGTemplate){
+            var controlLayer =    subtitlesComp.layers.addNull(duration);
+            controlLayer.name = "controller"; 
+            addDropShadow(controlLayer, dropShadow);
+            addPropsToMGTemplate(hPos, vPos, controlLayer, subtitlesComp);
+        }
         for (var i = 0; i < subtitles.length; i++){
             var subtitlesLayer = subtitlesComp.layers.addText(subtitles[i].textPayload);
             // subtitlesText.font = font;
@@ -98,9 +106,19 @@ function makeSubtitlesComp(compSettings, subtitleInfo){
             subtitlesLayer.inPoint = subtitles[i].inPoint;
             subtitlesLayer.outPoint = subtitles[i].outPoint;
             if (dropShadow){
-                addDropShadow(subtitlesLayer, dropShadow);
+                var theDropShadow = addDropShadow(subtitlesLayer, dropShadow);
+            }
+            if (compSettings.makeMGTemplate){
+                subtitlesLayer.position.expression = "thisComp.layer('controller').transform.position";
+                subtitlesLayer.scale.expression = "thisComp.layer('controller').transform.scale";
+                if(theDropShadow){
+                    theDropShadow.property("Opacity").expression = "thisComp.layer('controller').effect('Drop Shadow')('Opacity')";
+                    theDropShadow.property("Softness").expression = "thisComp.layer('controller').effect('Drop Shadow')('Softness')";
+                    theDropShadow.property("Distance").expression = "thisComp.layer('controller').effect('Drop Shadow')('Distance')";
+                }
             }
         }
+        
     } else {
         //next two methods use a single layer, so create it now
         var subtitlesLayer = subtitlesComp.layers.addText("Subtitles");
@@ -112,33 +130,61 @@ function makeSubtitlesComp(compSettings, subtitleInfo){
         subtitlesText.justification = ParagraphJustification.CENTER_JUSTIFY;
         subtitlesTextProp.setValue(subtitlesText);
         subtitlesLayer.position.setValue([hPos, vPos]);
-        // subtitlesLayer.position.expression = 'transform.position - [0, sourceRectAtTime().height]'; // anchors the text at the bottom
         if (dropShadow){
             addDropShadow(subtitlesLayer, dropShadow);
         }
-    if (method === 1){
-        // use expression
-        fileName = subtitleInfo.name + ".json";
-        jsonFile = writeJSONFile(subtitleInfo)
-        app.project.importFile(new ImportOptions(jsonFile));
-        subtitlesLayer.text.sourceText.expression = 'var subtitles = footage("' + jsonFile.displayName + '").sourceData;\nvar i= 0;\nwhile (i < subtitles.length ){\n	if (time > subtitles[i].inPoint && time < subtitles[i].outPoint ){ \n        subtitles[i].textPayload;\n        break;\n    } else {\n        i++;\n        "";\n    }\n}';
-    } else {
-        // use keyframes
+        if (method === 1){
+            // use expression
+            fileName = subtitleInfo.name + ".json";
+            jsonFile = writeJSONFile(subtitleInfo)
+            app.project.importFile(new ImportOptions(jsonFile));
+            subtitlesLayer.text.sourceText.expression = 'var subtitles = footage("' + jsonFile.displayName + '").sourceData;\nvar i= 0;\nwhile (i < subtitles.length ){\n	if (time > subtitles[i].inPoint && time < subtitles[i].outPoint ){ \n        subtitles[i].textPayload;\n        break;\n    } else {\n        i++;\n        "";\n    }\n}';
+        } else {
+            // use keyframes
             subtitlesLayer.text.sourceText.setValueAtTime(0, "")
             for (var i = 0; i < subtitles.length; i++){
                 subtitlesTextProp.setValueAtTime(subtitles[i].inPoint, subtitles[i].textPayload);
                 subtitlesTextProp.setValueAtTime(subtitles[i].outPoint, "");
             }
-        // subtitlesComp.motionGraphicsTemplateName = compName;
-        // subtitlesComp.openInEssentialGraphics();
-        }
+            if (compSettings.makeMGTemplate){
+                addPropsToMGTemplate(hPos, vPos, subtitlesLayer, subtitlesComp);
+            }
+        }    
     }
 
     subtitlesComp.openInViewer();
-    // subtitlesLayer.position.addToMotionGraphicsTemplate(subtitlesComp);
+    if (compSettings.makeMGTemplate){
+        subtitlesComp.motionGraphicsTemplateName = compName + compSettings.mgTemplateSuffix;
+        subtitlesComp.openInEssentialGraphics();
+        subtitlesComp.exportAsMotionGraphicsTemplate(true);
+    }
     return subtitlesComp;
 }
 
+function addPropsToMGTemplate(hPos, vPos, subtitlesLayer, subtitlesComp){
+    var xSlider = subtitlesLayer.property("ADBE Effect Parade").addProperty("Slider Control");
+    xSlider.name = "x Pos";
+    xSlider("Slider").setValue(Math.round(100 * hPos/subtitlesComp.width));
+    xSliderIndex = xSlider.propertyIndex;
+    subtitlesLayer.effect(xSliderIndex)("Slider").addToMotionGraphicsTemplateAs(subtitlesComp, "x Pos");
+    var ySlider = subtitlesLayer.property("ADBE Effect Parade").addProperty("Slider Control");
+    ySlider.name = "y Pos";
+    ySlider("Slider").setValue(Math.round(100 * vPos/subtitlesComp.height));
+    ySliderIndex = ySlider.propertyIndex;
+    subtitlesLayer.effect(ySliderIndex)("Slider").addToMotionGraphicsTemplateAs(subtitlesComp, "y Pos");
+    subtitlesLayer.position.expression = '[effect("x Pos")("Slider")/100 * thisComp.width, effect("y Pos")("Slider")/100 * thisComp.height]';
+    var scaleSlider = subtitlesLayer.property("ADBE Effect Parade").addProperty("Slider Control");
+    scaleSlider.name = "Scale";
+    scaleSlider("Slider").setValue(50);
+    scaleSliderIndex = scaleSlider.propertyIndex;
+    subtitlesLayer.effect(scaleSliderIndex)("Slider").addToMotionGraphicsTemplateAs(subtitlesComp, "Scale");
+    subtitlesLayer.scale.expression = 's = effect("Scale")("Slider") * 2; [s, s]';
+    if (subtitlesLayer.effect("Drop Shadow")){
+        subtitlesLayer.effect("Drop Shadow")("Opacity").addToMotionGraphicsTemplateAs(subtitlesComp, "Drop Shadow Opacity");
+        subtitlesLayer.effect("Drop Shadow")("Softness").addToMotionGraphicsTemplateAs(subtitlesComp, "Drop Shadow Softness");
+        subtitlesLayer.effect("Drop Shadow")("Distance").addToMotionGraphicsTemplateAs(subtitlesComp, "Drop Shadow Distance");
+    }
+}
 
 function addDropShadow(theLayer, dropShadow){
     var dropShadowEffect = (theLayer.effect("Drop Shadow"))?
@@ -149,12 +195,8 @@ function addDropShadow(theLayer, dropShadow){
     dropShadowEffect.property("Opacity").setValue(dropShadow.opacity * 2.55); //opacity seems to be 0-255, although the display is in percent
     dropShadowEffect.property("Softness").setValue(dropShadow.softness);
     dropShadowEffect.property("Distance").setValue(dropShadow.distance);
+    return dropShadowEffect;
 }
-// var compSettings = {"compName": null, "width": null, "height": null, "pixelAspect": null, "frameRate": null, "font": null, "fontSize": null, "hPos": null, "vPos": null, "dropShadow": null, "useExpressions": null};
-// var srtFile = File.openDialog (prompt= "Choose an srt file", filter = "*.srt", multiSelect = false);
-// subtitlesComp = makeSubtitlesComp({"dropShadow":{"opacity":50, "softness": 25, "distance": 0}}, srtFile);
-// // subtitlesComp.exportAsMotionGraphicsTemplate(true);
-// subtitlesComp.openInViewer();
 
 function chooseSrtFile(){
     return File.openDialog (prompt= "Choose an srt file", filter = "*.srt", multiSelect = false);
@@ -166,9 +208,9 @@ buildGUI(this);
 
 function buildGUI(thisObj) {
   if (thisObj instanceof Panel) {
-    pal = thisObj;
+   pal = thisObj;
   } else {
-    pal = new Window('palette', "Subtitles From SRT");
+   pal = new Window('palette', "Subtitles From SRT");
   }
 
   if (pal !== null) {
@@ -186,12 +228,12 @@ function buildGUI(thisObj) {
         "-",
         "Other.."];
     var compsizes = [
-        {width: 1920, height: 1080, fontSize: 64},
-        {width: 1080, height: 1920, fontSize: 54},
-        {width: 1080, height: 1350, fontSize: 54},
-        {width: 864, height: 1080, fontSize: 48},
-        {width: 1080, height: 1080, fontSize: 54},
-        {width: null, height: null}
+        {width: 1920, height: 1080, fontSize: 64, mgTemplateSuffix: " Subs (16x9-1080)"},
+        {width: 1080, height: 1920, fontSize: 54, mgTemplateSuffix: " Subs (9x16-1920)"},
+        {width: 1080, height: 1350, fontSize: 54, mgTemplateSuffix: " Subs (5x4-1350)"},
+        {width: 864, height: 1080, fontSize: 48, mgTemplateSuffix: " Subs (5x4-1080)"},
+        {width: 1080, height: 1080, fontSize: 54, mgTemplateSuffix: " Subs (1x1-1080)"},
+        {width: null, height: null, fontSize: null, mgTemplateSuffix: " Subs (custom)"},
         ]
     var btn_Grp = pal.add('group{orientation: "column"}');
     var newCompSettings_Panel = btn_Grp.add('panel{orientation: "column", text: "New Comp Settings"}', undefined );
@@ -199,11 +241,10 @@ function buildGUI(thisObj) {
     var srtFile_ST = srt_Panel.add('staticText',[undefined, undefined, 154, 12], "no file chosen");
     var chooseSRT_Btn = srt_Panel.add('button{text: "Choose"}', [undefined, undefined, 154, 25] );
     var methd_Panel =  newCompSettings_Panel.add('panel{orientation: "column", text: "subtitle format"}', undefined);
-    // var method_DD = methd_Panel.add('staticText', undefined, "subtitle format");
     var method_DD = methd_Panel.add('dropDownList', [undefined, undefined, 154, undefined], methodList);
     method_DD.selection = 0;
-    // var useMGTemplate_Chkbx = methd_Panel.add('Checkbox', [undefined, undefined, 170, 16], 'Motion Graphics Template');
-
+    var useMGTemplate_Chkbx = methd_Panel.add('Checkbox', [undefined, undefined, 154, 16], 'Essential Graphics');
+    useMGTemplate_Chkbx.value = true;
     var comp_Panel =  newCompSettings_Panel.add('panel{orientation: "column", text: "comp settings"}', undefined);
     var compSize_DD = comp_Panel.add('dropDownList', [undefined, undefined, 154, undefined], compList, {selection: 1});
 
@@ -235,14 +276,14 @@ function buildGUI(thisObj) {
     var dropShadowDistance_ST = dropshadow_Panel.add('staticText', [undefined, undefined, 186, 12], 'Drop shadow distance')
     var dropShadowDistance_Slider = dropshadow_Panel.add('slider', [undefined, undefined, 186, 12], 0, 0, 20);
     
-    thisObj.srtFile = null;
+    pal.srtFile = null;
     chooseSRT_Btn.onClick = function(){
         var fileChoice = chooseSrtFile();
         // only set the value if user makes a selection
-        if (fileChoice) thisObj.srtFile = fileChoice; 
-        if (thisObj.srtFile !== null){
-            thisObj.subtitleInfo = parseSRTFile(thisObj.srtFile);
-            srtFile_ST.text = thisObj.subtitleInfo.name + ".srt";
+        if (fileChoice) pal.srtFile = fileChoice; 
+        if (pal.srtFile !== null){
+            pal.subtitleInfo = parseSRTFile(pal.srtFile);
+            srtFile_ST.text = pal.subtitleInfo.name + ".srt";
             doTheThings_Btn.enabled = true;
         } else {
             srtFile_ST.value = "No file chosen";
@@ -258,12 +299,11 @@ function buildGUI(thisObj) {
         if (newCompWidth){fontSize_ET.text = fontSize_Slider.value = compsizes[compSize_DD.selection.index].fontSize}
     }
 
-
     doTheThings_Btn.onClick = function(){
-        
+        app.beginUndoGroup("Create Subtitles Comp");
         var whichComp = compSize_DD.selection.index;
         var compSettings = {
-            name: thisObj.subtitleInfo.name, 
+            name: pal.subtitleInfo.name, 
             width: compsizes[whichComp].width, 
             height: compsizes[whichComp].height, 
             frameRate: parseFloat(frameRate_ET.text), 
@@ -277,10 +317,12 @@ function buildGUI(thisObj) {
                 softness: dropShadowSoftness_Slider.value,
                 distance: dropShadowDistance_Slider.value}
                 : false,
-            method: method_DD.selection.index//,
-            // makeMGTemplate: useMGTemplate_Chkbx.value
+            method: method_DD.selection.index,
+            makeMGTemplate: useMGTemplate_Chkbx.value,
+            mgTemplateSuffix: compsizes[whichComp].mgTemplateSuffix
         }
-        thisObj.theComp = makeSubtitlesComp(compSettings, thisObj.subtitleInfo);
+        pal.theComp = makeSubtitlesComp(compSettings, pal.subtitleInfo);
+        app.endUndoGroup();
     }
 
     frameRate_ET.oldVal = 25;
@@ -294,17 +336,18 @@ function buildGUI(thisObj) {
             frameRate_ET.text = frameRate_ET.oldVal;
         }
     }
-    // useMGTemplate_Chkbx.oldVal = useMGTemplate_Chkbx.value;
-    // method_DD.onChange = function(){
-    //     if (method_DD.selection.index != 2){
-    //         useMGTemplate_Chkbx.value = useMGTemplate_Chkbx.oldVal;
-    //         useMGTemplate_Chkbx.enabled = true;
-    //     } else {
-    //         useMGTemplate_Chkbx.oldVal = useMGTemplate_Chkbx.value;
-    //         useMGTemplate_Chkbx.enabled = false;
-    //         useMGTemplate_Chkbx.value = false;
-    //     }
-    // }
+
+    useMGTemplate_Chkbx.oldVal = useMGTemplate_Chkbx.value;
+    method_DD.onChange = function(){
+        if (method_DD.selection.index != 1){
+            useMGTemplate_Chkbx.value = useMGTemplate_Chkbx.oldVal;
+            useMGTemplate_Chkbx.enabled = true;
+        } else {
+            useMGTemplate_Chkbx.oldVal = useMGTemplate_Chkbx.value;
+            useMGTemplate_Chkbx.enabled = false;
+            useMGTemplate_Chkbx.value = false;
+        }
+    }
     doDropShadow_Chkbx.value = true;
     doDropShadow_Chkbx.onClick = function(){
         if (doDropShadow_Chkbx.value){
@@ -328,11 +371,10 @@ function buildGUI(thisObj) {
         };
     
     function updateDropShad(shadowOn){
-        // check to see if we've built a comp
-        
-        if (thisObj.theComp && app.project.activeItem == thisObj.theComp){
+        // check to see if we've built a comp        
+        if (pal.theComp && app.project.activeItem == pal.theComp){
             var theCompLayers = false;
-            theCompLayers = thisObj.theComp.layers;
+            theCompLayers = pal.theComp.layers;
             if (theCompLayers){
                 for (var i = 1; i <= theCompLayers.length; i++){
                     if (shadowOn){
@@ -389,9 +431,9 @@ function buildGUI(thisObj) {
         updateText();
     }
     function updateText(){
-        if (thisObj.theComp && app.project.activeItem == thisObj.theComp){;
+        if (pal.theComp && app.project.activeItem == pal.theComp){;
             var theCompLayers = false;
-            theCompLayers = thisObj.theComp.layers;
+            theCompLayers = pal.theComp.layers;
             if (theCompLayers){
                 for (var i = 1; i <= theCompLayers.length; i++){
                     
@@ -408,17 +450,17 @@ function buildGUI(thisObj) {
                         textVal.fontSize = fontSize_Slider.value;
                         subtitlesTextProp.setValue(textVal);
                     }
-                    hPos = xPos_Slider.value / 100 * thisObj.theComp.width;
-                    vPos = yPos_Slider.value / 100 * thisObj.theComp.height;
+                    hPos = xPos_Slider.value / 100 * pal.theComp.width;
+                    vPos = yPos_Slider.value / 100 * pal.theComp.height;
                     theCompLayers[i].transform.position.setValue([hPos, vPos]);
                 }
             }
         }
     };
 
-    if (thisObj instanceof Window) {
-        thisObj.center();
-        thisObj.show();
+    if (pal instanceof Window) {
+        pal.center();
+        pal.show();
     }  else {
         pal.layout.layout(true);
     }
