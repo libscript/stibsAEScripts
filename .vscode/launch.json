@@ -7,9 +7,18 @@
         {
             "type": "extendscript-debug",
             "request": "launch",
-            "name": "subs",
-            "program": "C:/Users/sdixon/AppData/Roaming/Adobe/After Effects/16.1/Scripts/ScriptUI Panels/subtitlesFromSRT_UI.jsx",
-            "stopOnEntry": true
+            "name": "cmdtest",
+            "program": "${workspaceFolder}/cmdtest.jsx",
+            "cwd": "/C/Users/sdixon/AppData/Roaming/Adobe/After Effects/16.1/Scripts/"
+            "stopOnEntry": false
+        },
+        {
+            "type": "extendscript-debug",
+            "request": "launch",
+            "name": "Ask for script name",
+            "program": "${workspaceFolder}/${command:AskForScriptName}",
+            "stopOnEntry": false
         }
+
     ]
 }
