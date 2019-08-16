@@ -469,7 +469,11 @@ function buildGUI(thisObj) {
 
 
 function findFonts(){
-
+    if( $.os.match(/Windows.*/)){
+        system.callSystem("cmd.exe /c \"powershell.exe -c [System.Reflection.Assembly]::LoadWithPartialName('System.Drawing');set-content fontlist.json (convertTo-json(New-Object System.Drawing.Text.InstalledFontCollection))\"");
+    }
     // '$(osascript << SCPT\nuse framework "AppKit"\nset fontFamilyNames to (current application\'s NSFontManager\'s sharedFontManager\'s availableFontFamilies) as list\nreturn fontFamilyNames\nSCPT)'
     
+
+
 }
