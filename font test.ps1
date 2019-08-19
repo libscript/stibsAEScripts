@@ -8,3 +8,5 @@ foreach($file in $objFolder.items()){ $name = $objFolder.getDetailsOf($file, $de
     $attrList += ( @{name = $name; style = $style; }); 
 };
 set-content "$env:temp\fontlist.json" (ConvertTo-Json($attrList))
+
+[System.Reflection.Assembly]::LoadWithPartialName('System.Drawing');set-content "$env:temp\fontlist.json" (convertTo-json(New-Object System.Drawing.Text.InstalledFontCollection))

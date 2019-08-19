@@ -7,4 +7,4 @@ theText.font = "YuGothic-Bold";
 
 theText.text=font;
 lyr1.sourceText.setValue(theText);
-lyr1.sourceText.value.font
+lyr1.sourceText.value.font 
